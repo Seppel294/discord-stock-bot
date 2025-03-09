@@ -71,4 +71,10 @@ if __name__ == "__main__":
     log("✅ Bot läuft! Ich überwache jetzt den Markt für dich.")
     
     # Debug: Test ob die Schleife durchläuft
-    for i in range(3):  # Anstatt Endlosschleife erstmal nur 
+    for i in range(3):  # Anstatt Endlosschleife erstmal nur 3 Durchläufe zum Testen
+        log(f"🔄 Starte Marktcheck Durchgang {i+1}")
+        check_portfolio()
+        fetch_news()
+        log("⏳ Warten auf den nächsten Check...")
+        time.sleep(5)  # Kürzere Wartezeit zum Debuggen
+    log("✅ Testlauf abgeschlossen. Falls alles gut lief, können wir die Endlosschleife aktivieren.")
