@@ -20,29 +20,47 @@ verlustgrenze = -50  # Ab -50 € Warnung und Entscheidung
 # API-URL für Aktienpreise (Platzhalter)
 api_url = "https://query1.finance.yahoo.com/v7/finance/quote?symbols="
 
+def log(message):
+    """ Schreibt Nachrichten in die Konsole und sendet sie an Discord """
+    print(message)
+    send_discord_alert(f"📝 LOG: {message}")
+
 def get_stock_price(wkn):
-    response = requests.get(f"{api_url}{wkn}")
-    if response.status_code == 200:
-        try:
+    """ Holt den aktuellen Aktienkurs """
+    try:
+        response = requests.get(f"{api_url}{wkn}")
+        if response.status_code == 200:
             return response.json()["quoteResponse"]["result"][0]["regularMarketPrice"]
-        except (KeyError, IndexError):
+        else:
+            log(f"⚠️ Fehler beim Abrufen von {wkn}: {response.status_code}")
             return 0
-    return 0
+    except Exception as e:
+        log(f"❌ API-Fehler: {str(e)}")
+        return 0
 
 def check_portfolio():
+    """ Überprüft das Portfolio & sendet Warnungen """
     for stock, data in portfolio.items():
         current_price = get_stock_price(data["wkn"])
         if current_price:
             percent_change = ((current_price - data["kaufpreis"]) / data["kaufpreis"]) * 100
+            log(f"📊 {stock}: {current_price} € ({percent_change:.2f}%)")
             if percent_change <= verlustgrenze:
                 send_discord_alert(f"⚠️ {stock} hat die Verlustgrenze erreicht! {percent_change:.2f}% | Empfehlung: {get_recommendation(stock)}")
 
 def get_recommendation(stock):
+    """ Gibt eine Empfehlung basierend auf dem Preis ab """
     return "Verkaufen!" if stock == "Rheinmetall" and get_stock_price("703000") < (portfolio["Rheinmetall"]["kaufpreis"] * 0.85) else "Halten"
 
 def send_discord_alert(message):
-    payload = {"content": message}
-    requests.post(discord_webhook_url, json=payload)
+    """ Sendet eine Nachricht an Discord """
+    try:
+        payload = {"content": message}
+        response = requests.post(discord_webhook_url, json=payload)
+        if response.status_code != 204:
+            log(f"⚠️ Webhook-Fehler: {response.status_code}")
+    except Exception as e:
+        log(f"❌ Discord-Fehler: {str(e)}")
 
 # News & Politik-Analyse
 def fetch_news():
@@ -50,8 +68,9 @@ def fetch_news():
     send_discord_alert(f"📰 Tägliche Marktnews: {headlines}")
 
 if __name__ == "__main__":
-    send_discord_alert("✅ Bot läuft! Ich überwache jetzt den Markt für dich.")
+    log("✅ Bot läuft! Ich überwache jetzt den Markt für dich.")
     while True:
         check_portfolio()
         fetch_news()
+        log("⏳ Warten auf den nächsten Check...")
         time.sleep(3600)  # Alle 60 Minuten prüfen
