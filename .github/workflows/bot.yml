@@ -2,7 +2,7 @@ name: Run Discord Stock Bot
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Alle 30 Minuten ausführen
+    - cron: '*/60 * * * *'  # Alle 60 Minuten ausführen
   workflow_dispatch:  # Manuelles Starten möglich
 
 jobs:
