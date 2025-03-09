@@ -69,8 +69,6 @@ def fetch_news():
 
 if __name__ == "__main__":
     log("✅ Bot läuft! Ich überwache jetzt den Markt für dich.")
-    while True:
-        check_portfolio()
-        fetch_news()
-        log("⏳ Warten auf den nächsten Check...")
-        time.sleep(3600)  # Alle 60 Minuten prüfen
+    
+    # Debug: Test ob die Schleife durchläuft
+    for i in range(3):  # Anstatt Endlosschleife erstmal nur 
